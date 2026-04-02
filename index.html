@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline de Segmentation Médicale</title>
+  <style>
+    :root{
+      --bg:#1b1f45;
+      --text:#f5f7ff;
+      --muted:#b9c0e0;
+      --card:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.12);
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --radius:26px;
+      --section-gap:160px;
+      --max-width:420px;
+      --card-border:rgba(255,255,255,0.12);
+      --accent:#c9d4ff;
+      --accent-2:#a5b8ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, rgba(120, 137, 255, 0.18), transparent 28%), var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.10) 0, transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(173, 193, 255, 0.09) 0, transparent 24%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .top-logos {
+      position: fixed;
+      top: 14px;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .logo {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+      pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .logo img { width: 100%; height: 100%; object-fit: cover; }
+    .logo.left { left: 14px; }
+    .logo.right { right: 14px; }
+
+    .snow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .snow span {
+      position: absolute;
+      display: block;
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.7);
+      filter: blur(0.4px);
+      animation: fall linear infinite;
+      opacity: 0.55;
+    }
+
+    @keyframes fall {
+      from { transform: translate3d(0, -10vh, 0); }
+      to { transform: translate3d(var(--drift), 110vh, 0); }
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 86px 18px 0;
+    }
+
+    .glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05));
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+      position: relative;
+      margin-bottom: var(--section-gap);
+    }
+
+    .section-inner {
+      border-radius: 28px;
+      padding: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0.9;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      box-shadow: 0 0 12px rgba(255,255,255,0.7);
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 8vw, 3.3rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    h3 {
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.98rem;
+    }
+
+    .hero {
+      gap: 28px;
+      padding-top: 18px;
+    }
+
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      border-radius: 32px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -30% auto;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(185,198,255,0.18), transparent 68%);
+      pointer-events: none;
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy strong { color: #ffffff; font-weight: 700; }
+
+    .hero-illustration {
+      width: 100%;
+      aspect-ratio: 4 / 4.5;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05)),
+        radial-gradient(circle at 50% 30%, rgba(201,212,255,0.20), transparent 35%),
+        rgba(255,255,255,0.04);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-illustration img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      margin-top: -45px;
+    }
+
+    .hero-actions,
+    .demo-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.25s ease, background 0.25s ease, opacity 0.25s ease;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: rgba(255,255,255,0.92);
+      color: #101530;
+      font-weight: 700;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .pipeline-header,
+    .demo-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.04));
+      transform-origin: top;
+      transform: scaleY(0);
+      transition: transform 1s ease;
+    }
+
+    .timeline.visible::before { transform: scaleY(1); }
+
+    .step {
+      position: relative;
+      padding-left: 60px;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: transform 0.75s cubic-bezier(.2,.8,.2,1), opacity 0.75s ease;
+    }
+
+    .step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .step-icon {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .step-icon img {
+      width: 72%;
+      height: 72%;
+      object-fit: contain;
+    }
+
+    .step-card {
+      border-radius: 22px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .step-card small {
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.72rem;
+    }
+
+    .demo-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-radius: 28px;
+      padding: 18px;
+    }
+
+    .upload-zone {
+      border: 1.2px dashed rgba(255,255,255,0.22);
+      border-radius: 24px;
+      padding: 22px 16px;
+      text-align: center;
+      background: rgba(255,255,255,0.04);
+      transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .upload-zone.dragover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.5);
+      transform: translateY(-2px);
+    }
+
+    .upload-zone input { display: none; }
+
+    .upload-zone label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      color: #101530;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .preview-grid.single { grid-template-columns: 1fr; }
+
+    .preview-card {
+      border-radius: 22px;
+      overflow: hidden;
+      min-height: 190px;
+      position: relative;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .preview-card.tall { min-height: 220px; }
+
+    .preview-card .label {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      z-index: 2;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 21, 48, 0.72);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+
+    .preview-card img,
+    .preview-card canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-empty {
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      text-align: center;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.5;
+      font-size: 0.92rem;
+      height: 100%;
+    }
+
+    .demo-note {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      border-radius: 18px;
+      padding: 14px 10px;
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.02rem;
+      margin-bottom: 4px;
+    }
+
+    .stat span {
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    .snow-dune {
+      position: relative;
+      margin-top: 40px;
+      height: 180px;
+      overflow: hidden;
+    }
+
+    .snow-dune::before,
+    .snow-dune::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      filter: blur(1px);
+    }
+
+    .snow-dune::before {
+      bottom: -70px;
+      width: 155%;
+      height: 190px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(236,241,255,0.92));
+      opacity: 0.92;
+    }
+
+    .snow-dune::after {
+      bottom: -88px;
+      width: 130%;
+      height: 175px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0.08));
+      opacity: 0.8;
+    }
+
+    .footer-caption {
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      font-size: 0.85rem;
+      color: #33406d;
+      font-weight: 600;
+      text-align: center;
+      width: calc(100% - 32px);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px) scale(0.98);
+      transition: opacity 0.8s ease, transform 0.8s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    @media (min-width: 480px) {
+      .app { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-logos">
+    <div class="logo left"><img src="logo1.png" alt="Logo gauche"></div>
+    <div class="logo right"><img src="logo2.png" alt="Logo droite"></div>
+  </div>
+
+  <div class="snow" aria-hidden="true" id="snow"></div>
+
+  <main class="app">
+    <section id="accueil" class="hero">
+      <div class="hero-card glass reveal section-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">IA médicale · segmentation CT scan</span>
+          <h1>Comprendre une pipeline de segmentation sans se faire attaquer par le jargon.</h1>
+          <p>
+            Une expérience mobile et lofi pour raconter, étape par étape, comment un modèle apprend à repérer des zones utiles dans des <strong>CT scans médicaux</strong>.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#pipeline">Voir la pipeline</a>
+            <a class="btn btn-secondary" href="#demo">Comparer les modèles</a>
+          </div>
+        </div>
+
+        <div class="hero-illustration" id="heroIllustration">
+          <img src="image.png" alt="Illustration de segmentation médicale" />
+        </div>
+      </div>
+    </section>
+
+    <section id="pipeline">
+      <div class="glass section-inner reveal">
+        <div class="pipeline-header">
+          <span class="eyebrow">Bloc 2</span>
+          <h2>La pipeline utilisée</h2>
+          <p>
+            Ici, tu retrouveras la façon dont j'ai procédé pour entraîner un modèle permettant de réaliser des segmentations d'imagerie médicale.
+          </p>
+        </div>
+
+        <div class="timeline" id="timeline">
+          <article class="step">
+            <div class="step-icon"><img src="1.png" alt="Icône prétraitement"></div>
+            <div class="step-card glass">
+              <small>Préparation</small>
+              <h3>Prétraitement</h3>
+              <p>Nettoyage, harmonisation et préparation des CT scans pour fournir au modèle des entrées cohérentes et exploitables.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-icon"><img src="2.png" alt="Icône U-Net"></div>
+            <div class="step-card glass">
+              <small>Point de départ</small>
+              <h3>Baseline U-Net</h3>
+              <p>Une première architecture de segmentation sert de base de comparaison pour comprendre ce qui fonctionne déjà… et ce qu'on peut rendre meilleur.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-icon"><img src="3.png" alt="Icône skip connections"></div>
+            <div class="step-card glass">
+              <small>Amélioration</small>
+              <h3>Modification des skip connections</h3>
+              <p>Les connexions entre encodeur et décodeur sont retravaillées pour mieux préserver l'information utile et affiner la qualité des masques prédits.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-icon"><img src="4.png" alt="Icône entraînement"></div>
+            <div class="step-card glass">
+              <small>Apprentissage</small>
+              <h3>Entraînement</h3>
+              <p>Le modèle apprend progressivement à associer les images médicales aux zones à segmenter en réduisant son erreur au fil des itérations.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-icon"><img src="5.png" alt="Icône pseudolabelling"></div>
+            <div class="step-card glass">
+              <small>Extension des données</small>
+              <h3>Pseudolabelling</h3>
+              <p>Le modèle génère lui-même de nouveaux labels probables sur des images non annotées pour enrichir l'entraînement et gagner en robustesse.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-icon"><img src="6.png" alt="Icône évaluation"></div>
+            <div class="step-card glass">
+              <small>Mesure</small>
+              <h3>Évaluation</h3>
+              <p>On vérifie ensuite la qualité des prédictions sur des cas tenus à l'écart, afin d'estimer ce que le modèle sait vraiment faire hors de sa zone de confort.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="demo-shell glass section-inner reveal">
+        <div class="demo-header">
+          <span class="eyebrow">Bloc 3</span>
+          <h2>Comparer U-Net et Felix</h2>
+          <p>
+            Charge une image, lance l'inférence sur les deux modèles, puis vote pour le résultat que tu préfères. Les votes sont stockés localement dans le navigateur pour la démo.
+          </p>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+          <p><strong>Dépose une image ou sélectionne un fichier</strong></p>
+          <p class="demo-note" style="margin-top: 6px;">PNG, JPG ou WebP. Idéalement une coupe CT ou une image d'exemple de ton projet.</p>
+          <label for="fileInput">Choisir une image</label>
+          <input id="fileInput" type="file" accept="image/png, image/jpeg, image/webp" />
+        </div>
+
+        <div class="preview-grid single">
+          <div class="preview-card tall">
+            <span class="label">Entrée</span>
+            <div class="preview-empty" id="inputEmpty">L'image importée s'affichera ici.</div>
+            <img id="inputPreview" alt="Aperçu de l'image importée" style="display:none;" />
+          </div>
+        </div>
+
+        <div class="preview-grid">
+          <div class="preview-card">
+            <span class="label">U-Net</span>
+            <div class="preview-empty" id="outputEmptyUnet">Le masque U-Net apparaîtra ici après lancement.</div>
+            <canvas id="outputCanvasUnet" style="display:none;"></canvas>
+          </div>
+          <div class="preview-card">
+            <span class="label">Felix</span>
+            <div class="preview-empty" id="outputEmptyFelix">Le masque Felix apparaîtra ici après lancement.</div>
+            <canvas id="outputCanvasFelix" style="display:none;"></canvas>
+          </div>
+        </div>
+
+        <div class="demo-actions">
+          <button class="btn btn-primary" id="runInference">Lancer les 2 inférences</button>
+          <button class="btn btn-secondary" id="resetDemo">Réinitialiser</button>
+        </div>
+
+        <div class="demo-actions">
+          <button class="btn btn-secondary" id="voteUnet">Voter pour U-Net</button>
+          <button class="btn btn-secondary" id="voteFelix">Voter pour Felix</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <strong id="statConfidence">--</strong>
+            <span>Score U-Net</span>
+          </div>
+          <div class="stat">
+            <strong id="statSurface">--</strong>
+            <span>Score Felix</span>
+          </div>
+          <div class="stat">
+            <strong id="statLatency">--</strong>
+            <span>Latence totale</span>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <strong id="voteCountUnet">0%</strong>
+            <span>Votes U-Net</span>
+          </div>
+          <div class="stat">
+            <strong id="voteCountFelix">0%</strong>
+            <span>Votes Felix</span>
+          </div>
+          <div class="stat">
+            <strong id="voteTotal">0</strong>
+            <span>Total votes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="snow-dune" aria-hidden="true">
+        <div class="footer-caption">Deux modèles, quelques flocons, et un petit duel parfaitement civilisé.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  const API_BASE_URL = "https://api-segmentation-2.onrender.com";
+
+  const snow = document.getElementById('snow');
+  const snowCount = 44;
+
+  for (let i = 0; i < snowCount; i++) {
+    const flake = document.createElement('span');
+    const size = Math.random() * 3 + 1.5;
+    flake.style.width = `${size}px`;
+    flake.style.height = `${size}px`;
+    flake.style.left = `${Math.random() * 100}%`;
+    flake.style.top = `${Math.random() * -100}%`;
+    flake.style.opacity = (Math.random() * 0.45 + 0.18).toFixed(2);
+    flake.style.animationDuration = `${Math.random() * 12 + 12}s`;
+    flake.style.animationDelay = `${Math.random() * -20}s`;
+    flake.style.setProperty('--drift', `${(Math.random() * 36 - 18).toFixed(2)}px`);
+    snow.appendChild(flake);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.18 });
+
+  document.querySelectorAll('.reveal, .step').forEach((el) => observer.observe(el));
+
+  const timeline = document.getElementById('timeline');
+  const timelineObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) timeline.classList.add('visible');
+    });
+  }, { threshold: 0.22 });
+  timelineObserver.observe(timeline);
+
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const inputPreview = document.getElementById('inputPreview');
+  const inputEmpty = document.getElementById('inputEmpty');
+  const outputCanvasUnet = document.getElementById('outputCanvasUnet');
+  const outputCanvasFelix = document.getElementById('outputCanvasFelix');
+  const outputEmptyUnet = document.getElementById('outputEmptyUnet');
+  const outputEmptyFelix = document.getElementById('outputEmptyFelix');
+  const runInferenceBtn = document.getElementById('runInference');
+  const resetBtn = document.getElementById('resetDemo');
+  const voteUnetBtn = document.getElementById('voteUnet');
+  const voteFelixBtn = document.getElementById('voteFelix');
+  const confidence = document.getElementById('statConfidence');
+  const surface = document.getElementById('statSurface');
+  const latency = document.getElementById('statLatency');
+  const voteCountUnet = document.getElementById('voteCountUnet');
+  const voteCountFelix = document.getElementById('voteCountFelix');
+  const voteTotal = document.getElementById('voteTotal');
+
+  let currentImage = null;
+  let currentFile = null;
+
+  function preventDefaults(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+    uploadZone.addEventListener(eventName, preventDefaults, false);
+  });
+
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
+  });
+
+  ['dragleave', 'drop'].forEach((eventName) => {
+    uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+  });
+
+  uploadZone.addEventListener('drop', (event) => {
+    const file = event.dataTransfer.files?.[0];
+    if (file) loadImageFile(file);
+  });
+
+  fileInput.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (file) loadImageFile(file);
+  });
+
+  function loadImageFile(file) {
+    if (!file.type.startsWith('image/')) return;
+
+    currentFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      currentImage = new Image();
+      currentImage.onload = () => {
+        inputPreview.src = reader.result;
+        inputPreview.style.display = 'block';
+        inputEmpty.style.display = 'none';
+
+        outputCanvasUnet.style.display = 'none';
+        outputCanvasFelix.style.display = 'none';
+        outputEmptyUnet.style.display = 'grid';
+        outputEmptyFelix.style.display = 'grid';
+        outputEmptyUnet.textContent = 'Le masque U-Net apparaîtra ici après lancement.';
+        outputEmptyFelix.textContent = 'Le masque Felix apparaîtra ici après lancement.';
+        resetStats();
+      };
+      currentImage.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetStats() {
+    confidence.textContent = '--';
+    surface.textContent = '--';
+    latency.textContent = '--';
+  }
+
+  async function refreshVotes() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/votes`);
+      if (!response.ok) throw new Error('Impossible de récupérer les votes.');
+
+      const data = await response.json();
+      voteCountUnet.textContent = `${Number(data.unet_percentage).toFixed(1)}%`;
+      voteCountFelix.textContent = `${Number(data.felix_percentage).toFixed(1)}%`;
+      voteTotal.textContent = data.total_votes;
+    } catch (error) {
+      console.error('Erreur votes:', error);
+    }
+  }
+
+  function drawBase64ToCanvas(canvas, base64Image) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        resolve();
+      };
+      img.onerror = reject;
+      img.src = base64Image;
+    });
+  }
+
+  async function runDualInference() {
+    if (!currentFile) {
+      outputEmptyUnet.style.display = 'grid';
+      outputEmptyFelix.style.display = 'grid';
+      outputEmptyUnet.textContent = "Ajoute d'abord une image pour lancer la démo.";
+      outputEmptyFelix.textContent = "Ajoute d'abord une image pour lancer la démo.";
+      return;
+    }
+
+    runInferenceBtn.disabled = true;
+    runInferenceBtn.textContent = "Inférence...";
+
+    try {
+      const formData = new FormData();
+      formData.append('file', currentFile);
+
+      const response = await fetch(`${API_BASE_URL}/infer`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Erreur API');
+      }
+
+      const result = await response.json();
+
+      await drawBase64ToCanvas(outputCanvasUnet, result.unet_mask_base64);
+      await drawBase64ToCanvas(outputCanvasFelix, result.felix_mask_base64);
+
+      outputCanvasUnet.style.display = 'block';
+      outputCanvasFelix.style.display = 'block';
+      outputEmptyUnet.style.display = 'none';
+      outputEmptyFelix.style.display = 'none';
+
+      confidence.textContent = `${(Number(result.unet_score) * 100).toFixed(1)}%`;
+      surface.textContent = `${(Number(result.felix_score) * 100).toFixed(1)}%`;
+      latency.textContent = `${Math.round(Number(result.latency_ms))} ms`;
+    } catch (error) {
+      console.error('Erreur inference:', error);
+
+      outputEmptyUnet.style.display = 'grid';
+      outputEmptyFelix.style.display = 'grid';
+      outputEmptyUnet.textContent = "Erreur lors de l'inférence.";
+      outputEmptyFelix.textContent = "Vérifie l'API ou le format de l'image.";
+    } finally {
+      runInferenceBtn.disabled = false;
+      runInferenceBtn.textContent = "Lancer les 2 inférences";
+    }
+  }
+
+  async function sendVote(modelName) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ model: modelName })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Erreur lors du vote');
+      }
+
+      const data = await response.json();
+      voteCountUnet.textContent = `${Number(data.unet_percentage).toFixed(1)}%`;
+      voteCountFelix.textContent = `${Number(data.felix_percentage).toFixed(1)}%`;
+      voteTotal.textContent = data.total_votes;
+    } catch (error) {
+      console.error('Erreur vote:', error);
+    }
+  }
+
+  runInferenceBtn.addEventListener('click', runDualInference);
+
+  resetBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    currentImage = null;
+    currentFile = null;
+
+    inputPreview.src = '';
+    inputPreview.style.display = 'none';
+    inputEmpty.style.display = 'grid';
+
+    outputCanvasUnet.style.display = 'none';
+    outputCanvasFelix.style.display = 'none';
+
+    outputEmptyUnet.style.display = 'grid';
+    outputEmptyFelix.style.display = 'grid';
+    outputEmptyUnet.textContent = 'Le masque U-Net apparaîtra ici après lancement.';
+    outputEmptyFelix.textContent = 'Le masque Felix apparaîtra ici après lancement.';
+
+    resetStats();
+  });
+
+  voteUnetBtn.addEventListener('click', async () => {
+    await sendVote('unet');
+  });
+
+  voteFelixBtn.addEventListener('click', async () => {
+    await sendVote('felix');
+  });
+
+  refreshVotes();
+</script>
+</body>
+</html>
