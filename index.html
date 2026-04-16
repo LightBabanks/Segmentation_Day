@@ -31,7 +31,204 @@
       overflow-x: hidden;
       position: relative;
     }
+    .battle-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 14, 34, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
 
+.battle-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.battle-stage {
+  width: min(100%, 360px);
+  border-radius: 28px;
+  padding: 22px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.battle-arena {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  transition: height 0.4s ease, opacity 0.4s ease;  /* ← ajouter */
+}
+
+.battle-arena.collapse {  /* ← ajouter cette classe */
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.fighter {
+  position: absolute;
+  bottom: 0;
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  transition: transform 0.5s ease, opacity 0.35s ease;
+  will-change: transform, opacity;
+}
+
+.fighter-felix {
+  left: 6px;
+  transform: translateX(0) scaleX(1);
+}
+
+.fighter-robot {
+  right: 6px;
+  transform: translateX(0) scaleX(-1);
+}
+.fight-cloud {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%) scale(0.75);
+  width: 150px;
+  height: 150px;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fight-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 18px;
+}
+.battle-result {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 148px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.battle-result.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.battle-cat {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+}
+
+.battle-text {
+  text-align: center;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.battle-overlay.active .fighter-felix.charge {
+  animation: felixCharge 0.7s ease forwards;
+}
+
+.battle-overlay.active .fighter-robot.charge {
+  animation: robotCharge 0.7s ease forwards;
+}
+
+.battle-overlay.active .fight-cloud.show {
+  animation: cloudFight 1.5s ease forwards;
+}
+
+.fighter.winner {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) translateY(0) scale(1) !important;
+  animation: winnerBounce 0.8s ease infinite alternate;
+}
+
+.fighter.loser {
+  opacity: 0;
+  transform: translateY(20px) scale(0.8) !important;
+}
+
+@keyframes felixCharge {
+  0%   { transform: translateX(0) scaleX(1) rotate(0deg); }
+  35%  { transform: translateX(58px) scaleX(1) rotate(-4deg); }
+  70%  { transform: translateX(115px) scaleX(1) rotate(5deg); }
+  100% { transform: translateX(132px) scaleX(1) rotate(-3deg); }
+}
+
+@keyframes robotCharge {
+  0%   { transform: translateX(0) scaleX(-1) rotate(0deg); }
+  35%  { transform: translateX(-58px) scaleX(-1) rotate(4deg); }
+  70%  { transform: translateX(-115px) scaleX(-1) rotate(-5deg); }
+  100% { transform: translateX(-132px) scaleX(-1) rotate(3deg); }
+}
+
+@keyframes cloudFight {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.9) rotate(-4deg);
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.02) rotate(4deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(0.96) rotate(-6deg);
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(1.08) rotate(5deg);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(0.98) rotate(-3deg);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.02) rotate(2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.75) rotate(0deg);
+  }
+}
+
+@keyframes winnerBounce {
+  from {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    transform: translateX(-50%) translateY(-10px) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-overlay,
+  .battle-result,
+  .fighter,
+  .fight-cloud {
+    transition: none !important;
+    animation: none !important;
+  }
+}
     body::before {
       content: "";
       position: fixed;
@@ -399,7 +596,64 @@
     }
 
     .preview-card.tall { min-height: 220px; }
+    .select-wrap {
+  position: relative;
+  width: min(260px, 100%);
+  margin: 16px auto 0;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+  box-shadow: var(--shadow);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
 
+.select-wrap:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.24);
+}
+
+.select-wrap:focus-within {
+  border-color: rgba(201,212,255,0.9);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.28),
+    0 0 0 3px rgba(201,212,255,0.18);
+}
+
+.image-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.96rem;
+  font-weight: 600;
+  padding: 14px 44px 14px 18px;
+  cursor: pointer;
+}
+
+.image-select option {
+  background: #23285a;
+  color: #f5f7ff;
+}
+
+.image-select:invalid {
+  color: rgba(245,247,255,0.7);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-52%);
+  color: var(--accent);
+  font-size: 1.1rem;
+  pointer-events: none;
+  opacity: 0.95;
+}
     .preview-card .label {
       position: absolute;
       left: 10px;
@@ -464,13 +718,22 @@
       font-size: 0.77rem;
       color: var(--muted);
     }
-
+#demo {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 180px;
+  margin-bottom: 0;
+}
     .snow-dune {
-      position: relative;
-      margin-top: 40px;
-      height: 180px;
-      overflow: hidden;
-    }
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-top: 0;
+  height: 180px;
+  overflow: hidden;
+  pointer-events: none;
+}
 
     .snow-dune::before,
     .snow-dune::after {
@@ -629,16 +892,45 @@
           <span class="eyebrow">Bloc 3</span>
           <h2>Comparer U-Net et Felix</h2>
           <p>
-            Charge une image, lance l'inférence sur les deux modèles, puis vote pour le résultat que tu préfères. Les votes sont stockés localement dans le navigateur pour la démo.
+            Sélectionne une image déjà précalculée, puis compare directement les résultats des deux modèles. Chaque nom de fichier existe dans les trois dossiers : original, baseline et freqdwt.
           </p>
         </div>
 
-        <div class="upload-zone" id="uploadZone">
-          <p><strong>Dépose une image ou sélectionne un fichier</strong></p>
-          <p class="demo-note" style="margin-top: 6px;">PNG, JPG ou WebP. Idéalement une coupe CT ou une image d'exemple de ton projet.</p>
-          <label for="fileInput">Choisir une image</label>
-          <input id="fileInput" type="file" accept="image/png, image/jpeg, image/webp" />
-        </div>
+       <div class="upload-zone" id="uploadZone">
+  <p><strong>Sélectionne une image précalculée</strong></p>
+  <p class="demo-note" style="margin-top: 6px;">
+    Choisis un fichier présent dans les trois dossiers :
+    <code>original</code>, <code>baseline_unet</code> et <code>freqdwt_unet</code>.
+  </p>
+
+  <div class="select-wrap glass">
+    <select id="imageSelect" class="image-select" aria-label="Choisir une image">
+      <option value="">Choisir une image</option>
+      <option value="11.png">11.png</option>
+      <option value="15.png">15.png</option>
+      <option value="19.png">19.png</option>
+      <option value="35.png">35.png</option>
+      <option value="41.png">41.png</option>
+      <option value="44.png">44.png</option>
+      <option value="109.png">109.png</option>
+      <option value="112.png">112.png</option>
+      <option value="138.png">138.png</option>
+      <option value="140.png">140.png</option>
+      <option value="145.png">145.png</option>
+      <option value="199.png">199.png</option>
+      <option value="200.png">200.png</option>
+      <option value="224.png">224.png</option>
+      <option value="293.png">293.png</option>
+      <option value="330.png">330.png</option>
+      <option value="357.png">357.png</option>
+      <option value="393.png">393.png</option>
+      <option value="398.png">398.png</option>
+      <option value="421.png">421.png</option>
+      <option value="428.png">428.png</option>
+    </select>
+    <span class="select-arrow" aria-hidden="true">⌄</span>
+  </div>
+</div>
 
         <div class="preview-grid single">
           <div class="preview-card tall">
@@ -701,7 +993,24 @@
           </div>
         </div>
       </div>
+      <div class="battle-overlay" id="battleOverlay" aria-hidden="true">
+  <div class="battle-stage glass">
+    <div class="battle-arena" id="battleArena">
+      <img src="assets/felix.png" alt="Félix" class="fighter fighter-felix" id="fighterFelix" />
 
+      <div class="fight-cloud" id="fightCloud">
+        <img src="assets/fight.gif" alt="Combat" class="fight-gif" />
+      </div>
+
+      <img src="assets/robot.png" alt="Robot" class="fighter fighter-robot" id="fighterRobot" />
+    </div>
+
+    <div class="battle-result" id="battleResult">
+      <img src="assets/felix_happy.png" alt="Résultat du duel" class="battle-cat" id="battleCat" />
+      <p class="battle-text" id="battleText">Victoire écrasante, mais polie.</p>
+    </div>
+  </div>
+</div>
       <div class="snow-dune" aria-hidden="true">
         <div class="footer-caption">Deux modèles, quelques flocons, et un petit duel parfaitement civilisé.</div>
       </div>
@@ -709,10 +1018,16 @@
   </main>
 
   <script>
-  const API_BASE_URL = "https://api-segmentation-2.onrender.com";
-
+  const RESULTS_BASE_PATH = "inference_results";
+  const battleOverlay = document.getElementById('battleOverlay');
+const fighterFelix = document.getElementById('fighterFelix');
+const fighterRobot = document.getElementById('fighterRobot');
+const fightCloud = document.getElementById('fightCloud');
+const battleResult = document.getElementById('battleResult');
+const battleCat = document.getElementById('battleCat');
+const battleText = document.getElementById('battleText');
   const snow = document.getElementById('snow');
-  const snowCount = 44;
+  const snowCount = 100;
 
   for (let i = 0; i < snowCount; i++) {
     const flake = document.createElement('span');
@@ -744,80 +1059,30 @@
   }, { threshold: 0.22 });
   timelineObserver.observe(timeline);
 
-  const fileInput = document.getElementById('fileInput');
-  const uploadZone = document.getElementById('uploadZone');
+  const imageSelect = document.getElementById('imageSelect');
   const inputPreview = document.getElementById('inputPreview');
   const inputEmpty = document.getElementById('inputEmpty');
+
   const outputCanvasUnet = document.getElementById('outputCanvasUnet');
   const outputCanvasFelix = document.getElementById('outputCanvasFelix');
   const outputEmptyUnet = document.getElementById('outputEmptyUnet');
   const outputEmptyFelix = document.getElementById('outputEmptyFelix');
+
   const runInferenceBtn = document.getElementById('runInference');
   const resetBtn = document.getElementById('resetDemo');
+
   const voteUnetBtn = document.getElementById('voteUnet');
   const voteFelixBtn = document.getElementById('voteFelix');
+
   const confidence = document.getElementById('statConfidence');
   const surface = document.getElementById('statSurface');
   const latency = document.getElementById('statLatency');
+
   const voteCountUnet = document.getElementById('voteCountUnet');
   const voteCountFelix = document.getElementById('voteCountFelix');
   const voteTotal = document.getElementById('voteTotal');
 
-  let currentImage = null;
-  let currentFile = null;
-
-  function preventDefaults(event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
-    uploadZone.addEventListener(eventName, preventDefaults, false);
-  });
-
-  ['dragenter', 'dragover'].forEach((eventName) => {
-    uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
-  });
-
-  ['dragleave', 'drop'].forEach((eventName) => {
-    uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
-  });
-
-  uploadZone.addEventListener('drop', (event) => {
-    const file = event.dataTransfer.files?.[0];
-    if (file) loadImageFile(file);
-  });
-
-  fileInput.addEventListener('change', (event) => {
-    const file = event.target.files?.[0];
-    if (file) loadImageFile(file);
-  });
-
-  function loadImageFile(file) {
-    if (!file.type.startsWith('image/')) return;
-
-    currentFile = file;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      currentImage = new Image();
-      currentImage.onload = () => {
-        inputPreview.src = reader.result;
-        inputPreview.style.display = 'block';
-        inputEmpty.style.display = 'none';
-
-        outputCanvasUnet.style.display = 'none';
-        outputCanvasFelix.style.display = 'none';
-        outputEmptyUnet.style.display = 'grid';
-        outputEmptyFelix.style.display = 'grid';
-        outputEmptyUnet.textContent = 'Le masque U-Net apparaîtra ici après lancement.';
-        outputEmptyFelix.textContent = 'Le masque Felix apparaîtra ici après lancement.';
-        resetStats();
-      };
-      currentImage.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  }
+  let currentImageName = null;
 
   function resetStats() {
     confidence.textContent = '--';
@@ -825,142 +1090,263 @@
     latency.textContent = '--';
   }
 
-  async function refreshVotes() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/votes`);
-      if (!response.ok) throw new Error('Impossible de récupérer les votes.');
+  function resetOutputs() {
+    outputCanvasUnet.style.display = 'none';
+    outputCanvasFelix.style.display = 'none';
 
-      const data = await response.json();
-      voteCountUnet.textContent = `${Number(data.unet_percentage).toFixed(1)}%`;
-      voteCountFelix.textContent = `${Number(data.felix_percentage).toFixed(1)}%`;
-      voteTotal.textContent = data.total_votes;
-    } catch (error) {
-      console.error('Erreur votes:', error);
-    }
+    outputEmptyUnet.style.display = 'grid';
+    outputEmptyFelix.style.display = 'grid';
+
+    outputEmptyUnet.textContent = 'Le résultat Baseline U-Net apparaîtra ici.';
+    outputEmptyFelix.textContent = 'Le résultat FreqDWT U-Net apparaîtra ici.';
   }
 
-  function drawBase64ToCanvas(canvas, base64Image) {
+  function resetPreview() {
+    inputPreview.src = '';
+    inputPreview.style.display = 'none';
+    inputEmpty.style.display = 'grid';
+    inputEmpty.textContent = "L'image originale s'affichera ici.";
+
+    resetOutputs();
+    resetStats();
+  }
+
+  function drawImageToCanvas(canvas, imagePath) {
     return new Promise((resolve, reject) => {
       const img = new Image();
+
       img.onload = () => {
         const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Contexte canvas indisponible.'));
+          return;
+        }
+
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         resolve();
       };
-      img.onerror = reject;
-      img.src = base64Image;
+
+      img.onerror = () => {
+        reject(new Error(`Impossible de charger ${imagePath}`));
+      };
+
+      img.src = imagePath;
     });
   }
 
-  async function runDualInference() {
-    if (!currentFile) {
+  function loadOriginalImage(imageName) {
+    return new Promise((resolve, reject) => {
+      const originalPath = `${RESULTS_BASE_PATH}/original/${imageName}`;
+
+      inputPreview.onload = () => {
+        inputPreview.style.display = 'block';
+        inputEmpty.style.display = 'none';
+        resolve();
+      };
+
+      inputPreview.onerror = () => {
+        reject(new Error(`Impossible de charger ${originalPath}`));
+      };
+
+      inputPreview.src = originalPath;
+    });
+  }
+
+  async function showResults() {
+    if (!currentImageName) {
       outputEmptyUnet.style.display = 'grid';
       outputEmptyFelix.style.display = 'grid';
-      outputEmptyUnet.textContent = "Ajoute d'abord une image pour lancer la démo.";
-      outputEmptyFelix.textContent = "Ajoute d'abord une image pour lancer la démo.";
+      outputEmptyUnet.textContent = "Choisis d'abord une image.";
+      outputEmptyFelix.textContent = "Choisis d'abord une image.";
       return;
     }
 
     runInferenceBtn.disabled = true;
-    runInferenceBtn.textContent = "Inférence...";
+    runInferenceBtn.textContent = 'Chargement...';
+
+    const baselinePath = `${RESULTS_BASE_PATH}/baseline_unet/${currentImageName}`;
+    const freqdwtPath = `${RESULTS_BASE_PATH}/freqdwt_unet/${currentImageName}`;
 
     try {
-      const formData = new FormData();
-      formData.append('file', currentFile);
-
-      const response = await fetch(`${API_BASE_URL}/infer`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erreur API');
-      }
-
-      const result = await response.json();
-
-      await drawBase64ToCanvas(outputCanvasUnet, result.unet_mask_base64);
-      await drawBase64ToCanvas(outputCanvasFelix, result.felix_mask_base64);
+      await Promise.all([
+        drawImageToCanvas(outputCanvasUnet, baselinePath),
+        drawImageToCanvas(outputCanvasFelix, freqdwtPath)
+      ]);
 
       outputCanvasUnet.style.display = 'block';
       outputCanvasFelix.style.display = 'block';
       outputEmptyUnet.style.display = 'none';
       outputEmptyFelix.style.display = 'none';
 
-      confidence.textContent = `${(Number(result.unet_score) * 100).toFixed(1)}%`;
-      surface.textContent = `${(Number(result.felix_score) * 100).toFixed(1)}%`;
-      latency.textContent = `${Math.round(Number(result.latency_ms))} ms`;
+      confidence.textContent = 'Pré-calculé';
+      surface.textContent = 'Pré-calculé';
+      latency.textContent = '0 ms';
     } catch (error) {
-      console.error('Erreur inference:', error);
+      console.error('Erreur chargement résultats :', error);
 
+      outputCanvasUnet.style.display = 'none';
+      outputCanvasFelix.style.display = 'none';
       outputEmptyUnet.style.display = 'grid';
       outputEmptyFelix.style.display = 'grid';
-      outputEmptyUnet.textContent = "Erreur lors de l'inférence.";
-      outputEmptyFelix.textContent = "Vérifie l'API ou le format de l'image.";
+      outputEmptyUnet.textContent = 'Résultat baseline introuvable.';
+      outputEmptyFelix.textContent = 'Résultat freqdwt introuvable.';
     } finally {
       runInferenceBtn.disabled = false;
-      runInferenceBtn.textContent = "Lancer les 2 inférences";
+      runInferenceBtn.textContent = 'Afficher les résultats';
     }
   }
 
-  async function sendVote(modelName) {
+  imageSelect.addEventListener('change', async (event) => {
+    currentImageName = event.target.value || null;
+    resetPreview();
+
+    if (!currentImageName) return;
+
     try {
-      const response = await fetch(`${API_BASE_URL}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ model: modelName })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Erreur lors du vote');
-      }
-
-      const data = await response.json();
-      voteCountUnet.textContent = `${Number(data.unet_percentage).toFixed(1)}%`;
-      voteCountFelix.textContent = `${Number(data.felix_percentage).toFixed(1)}%`;
-      voteTotal.textContent = data.total_votes;
+      await loadOriginalImage(currentImageName);
     } catch (error) {
-      console.error('Erreur vote:', error);
+      console.error('Erreur image originale :', error);
+      inputEmpty.textContent = "Impossible de charger l'image originale.";
     }
-  }
+  });
 
-  runInferenceBtn.addEventListener('click', runDualInference);
+  runInferenceBtn.addEventListener('click', showResults);
 
   resetBtn.addEventListener('click', () => {
-    fileInput.value = '';
-    currentImage = null;
-    currentFile = null;
-
-    inputPreview.src = '';
-    inputPreview.style.display = 'none';
-    inputEmpty.style.display = 'grid';
-
-    outputCanvasUnet.style.display = 'none';
-    outputCanvasFelix.style.display = 'none';
-
-    outputEmptyUnet.style.display = 'grid';
-    outputEmptyFelix.style.display = 'grid';
-    outputEmptyUnet.textContent = 'Le masque U-Net apparaîtra ici après lancement.';
-    outputEmptyFelix.textContent = 'Le masque Felix apparaîtra ici après lancement.';
-
-    resetStats();
+    currentImageName = null;
+    imageSelect.value = '';
+    resetPreview();
   });
 
-  voteUnetBtn.addEventListener('click', async () => {
-    await sendVote('unet');
-  });
+  function getVotes() {
+    return JSON.parse(
+      localStorage.getItem('modelVotes') ||
+      '{"baseline_unet":0,"freqdwt_unet":0}'
+    );
+  }
 
-  voteFelixBtn.addEventListener('click', async () => {
-    await sendVote('felix');
-  });
+  function saveVotes(votes) {
+    localStorage.setItem('modelVotes', JSON.stringify(votes));
+  }
 
+  function refreshVotes() {
+    const votes = getVotes();
+    const baselineVotes = votes.baseline_unet || 0;
+    const freqVotes = votes.freqdwt_unet || 0;
+    const total = baselineVotes + freqVotes;
+
+    const baselinePct = total > 0 ? (baselineVotes / total) * 100 : 0;
+    const freqPct = total > 0 ? (freqVotes / total) * 100 : 0;
+
+    voteCountUnet.textContent = `${baselinePct.toFixed(1)}%`;
+    voteCountFelix.textContent = `${freqPct.toFixed(1)}%`;
+    voteTotal.textContent = total;
+  }
+  function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function playBattleAnimation(winnerModel) {
+  const felixWins = winnerModel === 'freqdwt_unet';
+
+  battleOverlay.classList.add('active');
+  battleOverlay.setAttribute('aria-hidden', 'false');
+
+  fighterFelix.className = 'fighter fighter-felix';
+  fighterRobot.className = 'fighter fighter-robot';
+  fightCloud.className = 'fight-cloud';
+  battleResult.className = 'battle-result';
+
+  battleCat.src = '';
+  battleCat.alt = 'Résultat du duel';
+  battleText.textContent = '';
+
+  await wait(60);
+
+  fighterFelix.classList.add('charge');
+  fighterRobot.classList.add('charge');
+
+  await wait(450);
+  fightCloud.classList.add('show');
+
+  // on masque les combattants pendant le gif
+  fighterFelix.style.opacity = '0';
+  fighterRobot.style.opacity = '0';
+
+  // laisse le gif tourner ~2.2s
+  await wait(2200);
+  fightCloud.classList.remove('show');
+
+  // ← NOUVEAU : effondre l'arène avant d'afficher le résultat
+  document.getElementById('battleArena').classList.add('collapse');
+  await wait(420);
+
+  if (felixWins) {
+    battleCat.src = 'assets/felix_happy.png';
+    battleCat.alt = 'Félix heureux';
+    battleText.textContent = 'Félix remporte le duel et savoure sa victoire avec beaucoup trop de panache.';
+  } else {
+    battleCat.src = 'assets/felix_sad.png';
+    battleCat.alt = 'Félix triste';
+    battleText.textContent = 'Le robot gagne. Félix est dévasté, mais reste professionnel.';
+  }
+
+  battleResult.classList.add('show');
+  await wait(2200);
+
+  battleOverlay.classList.remove('active');
+  battleOverlay.setAttribute('aria-hidden', 'true');
+
+  // ← NOUVEAU : remet l'arène en état pour la prochaine animation
+  fighterFelix.className = 'fighter fighter-felix';
+  fighterRobot.className = 'fighter fighter-robot';
+  fightCloud.className = 'fight-cloud';
+  battleResult.className = 'battle-result';
+  document.getElementById('battleArena').classList.remove('collapse');  // ← ajouter
+
+  fighterFelix.style.opacity = '';
+  fighterRobot.style.opacity = '';
+}
+
+  async function sendVote(modelName) {
+  if (!currentImageName) return;
+
+  const votes = getVotes();
+
+  if (modelName === 'baseline_unet') {
+    votes.baseline_unet = (votes.baseline_unet || 0) + 1;
+  }
+
+  if (modelName === 'freqdwt_unet') {
+    votes.freqdwt_unet = (votes.freqdwt_unet || 0) + 1;
+  }
+
+  saveVotes(votes);
+  refreshVotes();
+
+  voteUnetBtn.disabled = true;
+  voteFelixBtn.disabled = true;
+
+  try {
+    await playBattleAnimation(modelName);
+  } finally {
+    voteUnetBtn.disabled = false;
+    voteFelixBtn.disabled = false;
+  }
+}
+
+voteUnetBtn.addEventListener('click', async () => {
+  await sendVote('baseline_unet');
+});
+
+voteFelixBtn.addEventListener('click', async () => {
+  await sendVote('freqdwt_unet');
+});
+
+  resetPreview();
   refreshVotes();
 </script>
 </body>
