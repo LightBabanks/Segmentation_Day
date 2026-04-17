@@ -802,9 +802,9 @@
       <div class="hero-card glass reveal section-inner">
         <div class="hero-copy">
           <span class="eyebrow">IA médicale · segmentation CT scan</span>
-          <h1>Comprendre une pipeline de segmentation sans se faire attaquer par le jargon.</h1>
+          <h1>Comprendre une pipeline de segmentation simplement.</h1>
           <p>
-            Une expérience mobile et lofi pour raconter, étape par étape, comment un modèle apprend à repérer des zones utiles dans des <strong>CT scans médicaux</strong>.
+            Une expérience mobile pour raconter, étape par étape, comment un modèle apprend à repérer des zones utiles dans des <strong>CT scans médicaux</strong>.
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#pipeline">Voir la pipeline</a>
@@ -892,14 +892,14 @@
           <span class="eyebrow">Bloc 3</span>
           <h2>Comparer U-Net et Felix</h2>
           <p>
-            Sélectionne une image déjà précalculée, puis compare directement les résultats des deux modèles. Chaque nom de fichier existe dans les trois dossiers : original, baseline et freqdwt.
+            Sélectionne une image pour tester, puis compare directement les résultats des deux modèles.
           </p>
         </div>
 
        <div class="upload-zone" id="uploadZone">
   <p><strong>Sélectionne une image précalculée</strong></p>
   <p class="demo-note" style="margin-top: 6px;">
-    Choisis un fichier présent dans les trois dossiers :
+    Choisis un fichier présent! Celui que tu veux promis je ne t'obligerai pas à prendre 
     <code>original</code>, <code>baseline_unet</code> et <code>freqdwt_unet</code>.
   </p>
 
@@ -1012,7 +1012,7 @@
   </div>
 </div>
       <div class="snow-dune" aria-hidden="true">
-        <div class="footer-caption">Deux modèles, quelques flocons, et un petit duel parfaitement civilisé.</div>
+        <div class="footer-caption">Made By @Yacine_Babanks</div>
       </div>
     </section>
   </main>
@@ -1097,8 +1097,8 @@ const battleText = document.getElementById('battleText');
     outputEmptyUnet.style.display = 'grid';
     outputEmptyFelix.style.display = 'grid';
 
-    outputEmptyUnet.textContent = 'Le résultat Baseline U-Net apparaîtra ici.';
-    outputEmptyFelix.textContent = 'Le résultat FreqDWT U-Net apparaîtra ici.';
+    outputEmptyUnet.textContent = 'Le résultat de la Baseline U-Net apparaîtra ici.';
+    outputEmptyFelix.textContent = 'Le résultat du chanalyste Félix apparaîtra ici.';
   }
 
   function resetPreview() {
@@ -1287,11 +1287,11 @@ async function playBattleAnimation(winnerModel) {
   if (felixWins) {
     battleCat.src = 'assets/felix_happy.png';
     battleCat.alt = 'Félix heureux';
-    battleText.textContent = 'Félix remporte le duel et savoure sa victoire avec beaucoup trop de panache.';
+    battleText.textContent = 'Félix remporte le duel et savoure sa victoire! Il est très heureux.';
   } else {
     battleCat.src = 'assets/felix_sad.png';
     battleCat.alt = 'Félix triste';
-    battleText.textContent = 'Le robot gagne. Félix est dévasté, mais reste professionnel.';
+    battleText.textContent = "Le robot gagne. Félix est dévasté... Il est malheureux.. j'espère que tu en as conscience.";
   }
 
   battleResult.classList.add('show');
